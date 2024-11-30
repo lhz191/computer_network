@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人网页</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+     
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f4f8;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            text-align: center; /* 确保文本内容居中 */
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo {
+            width: 150px; 
+            height: auto;
+            border: 2px solid #00796b; /* 添加边框 */
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            color: #00796b;
+        }
+
+        footer {
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .container p {
+            margin: 10px 0;
+        }
+
+        .container h2 {
+            color: #00796b;
+            margin-top: 20px;
+        }
+
+        .container audio {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .github-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #00796b;
+            text-decoration: none;
+            border-bottom: 1px solid #00796b;
+            padding-bottom: 2px;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .github-link:hover {
+            color: #005c50;
+            border-bottom-color: #005c50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img class="logo" src="logo.png" alt="Logo">
+            <h1>欢迎来到我的个人网页</h1>
+            <p>这是一个展示个人信息和音频介绍的网页。</p>
+        </header>
+        
+        <main>
+            <p><strong>专业：</strong>计算机科学与技术</p>
+            <p><strong>学号：</strong>2212478</p>
+            <p><strong>姓名：</strong>刘浩泽</p>
+            <h2>自我介绍音频</h2>
+            <audio controls>
+                <source src="introduction.mp3" type="audio/mpeg">
+                您的浏览器不支持音频元素。
+            </audio>
+        </main>
+        
+        <footer>
+            <a href="https://github.com/lhz191" class="github-link">访问我的GitHub</a>
+            <p>版权所有 &copy; 2212478 刘浩泽</p>
+        </footer>
+    </div>
+</body>
+</html>
