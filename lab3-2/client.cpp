@@ -7,6 +7,7 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
+#include <limits> 
 #include <string>
 std::atomic<bool> ackReceived(false);  // 标志位，表示是否收到ACK
 int ackNumber = -1;
@@ -193,9 +194,9 @@ bool sendDataAndWaitForAck(SOCKET clientSocket, const sockaddr_in& clientAddr, c
             cerr << "发送数据包失败!" << endl;
             return false;
         }
-        cout <<"==================发送当前数据包==============="<< endl;
+        cout << "==================发送当前数据包===============" << endl;
         cout << "数据发送成功，等待ACK...." << endl;
-        cout << "发送数据包的序列号：" << header.sequenceNumber << "，ACK号：" << header.acknowledgmentNumber << "，校验和：" << header.checksum << endl; 
+        cout << "发送数据包的序列号：" << header.sequenceNumber << "，ACK号：" << header.acknowledgmentNumber << "，校验和：" << header.checksum << endl;
         uint32_t expectedAckNumber = header.sequenceNumber + 1;
         cout << "期望收到的ACK号: " << expectedAckNumber << endl;
 
@@ -276,13 +277,13 @@ bool sendDataAndWaitForAck(SOCKET clientSocket, const sockaddr_in& clientAddr, c
 bool performThreeWayHandshake(SOCKET clientSocket, const sockaddr_in& clientAddr, const sockaddr_in& serverAddr, UDPHeader& header, const char* data, int dataLength, uint32_t& sequenceNumber, uint32_t& acknowledgmentNumber) {
 
     PseudoHeader pseudoHeader = createPseudoHeader(clientAddr.sin_addr.s_addr, serverAddr.sin_addr.s_addr, HEADER_SIZE + dataLength);
-  
+
     vector<char> packet = createPacket(header, data, dataLength, pseudoHeader);
     cout << "==============三次握手建立连接=================" << endl;
     // 三次握手：第一步，发送SYN
     setConsoleColor(10);  // 设置为绿色
     cout << "尝试第一次握手建立连接..." << endl;
-    setConsoleColor(7);  
+    setConsoleColor(7);
     int retries = 0;
     int wrongAckCount = 0; // 记录连续收到的错误ACK数量
     bool three_wrong = false;
@@ -304,7 +305,7 @@ bool performThreeWayHandshake(SOCKET clientSocket, const sockaddr_in& clientAddr
             return false;
         }
         cout << "数据发送成功，等待SYN ACK...." << endl;
-        cout << "发送数据包的序列号："<< header.sequenceNumber <<"，ACK号："<<header.acknowledgmentNumber << "，校验和：" << header.checksum << endl;
+        cout << "发送数据包的序列号：" << header.sequenceNumber << "，ACK号：" << header.acknowledgmentNumber << "，校验和：" << header.checksum << endl;
         uint32_t expectedAckNumber = header.sequenceNumber + 1;
         cout << "期望收到的ACK号: " << expectedAckNumber << endl;
 
@@ -352,7 +353,7 @@ bool performThreeWayHandshake(SOCKET clientSocket, const sockaddr_in& clientAddr
                         else {
                             setConsoleColor(10);
                             cout << "第三次握手成功，成功建立连接" << endl;
-                            setConsoleColor(7); 
+                            setConsoleColor(7);
                             handshakeComplete = true; // 握手成功，退出循环
                         }
                     }
@@ -377,7 +378,7 @@ bool performThreeWayHandshake(SOCKET clientSocket, const sockaddr_in& clientAddr
                 if (retries >= MAX_RETRIES) {
                     setConsoleColor(12);  // 设置为红色
                     cerr << "达到最大重试次数，握手失败，服务器当前无法建立连接。" << endl;
-                    setConsoleColor(7);  
+                    setConsoleColor(7);
                     cout << "===============================================" << endl;
                     closesocket(clientSocket);
                     WSACleanup();
@@ -633,6 +634,10 @@ bool sendData(int clientSocket, const sockaddr_in& clientAddr, const sockaddr_in
                 cout << "触发快速重传机制" << endl;
                 setConsoleColor(7);
                 middle = begin;
+                ackHistory[0] = 0;
+                ackHistory[1] = 0;
+                ackHistory[2] = 0;
+                ackCount = 0;
                 continue;
             }
         }
@@ -663,7 +668,7 @@ bool sendData(int clientSocket, const sockaddr_in& clientAddr, const sockaddr_in
                     setConsoleColor(7);
                 }
 
-                //std::this_thread::sleep_for(std::chrono::milliseconds(PACKET_DELAY_MS)); // 延时
+                std::this_thread::sleep_for(std::chrono::milliseconds(PACKET_DELAY_MS)); // 延时
                 middle = end;
             }
             else {
@@ -692,7 +697,7 @@ bool sendData(int clientSocket, const sockaddr_in& clientAddr, const sockaddr_in
                     setConsoleColor(7);
                 }
 
-                //std::this_thread::sleep_for(std::chrono::milliseconds(PACKET_DELAY_MS)); // 延时
+                std::this_thread::sleep_for(std::chrono::milliseconds(PACKET_DELAY_MS)); // 延时
                 middle = middle + BUFFER_SIZE;
             }
         }
@@ -706,7 +711,7 @@ bool sendData(int clientSocket, const sockaddr_in& clientAddr, const sockaddr_in
 }
 
 // 客户端实现
-void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, uint16_t clientPort,int size) {
+void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, uint16_t clientPort, int size) {
     // 初始化Winsock
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -802,15 +807,15 @@ void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, 
         cout << "首先，传输文件名称....." << endl;
         // 提取文件名
         string fileName = filePath.substr(filePath.find_last_of("\\/") + 1);  // 获取文件名（不含路径）
-        std::cout <<"传输的文件名为："<<fileName << std::endl;
+        std::cout << "传输的文件名为：" << fileName << std::endl;
 
         UDPHeader fileHeader = createUDPHeader(clientPort, serverPort, ++sequenceNumber, ++acknowledgmentNumber, 0, fileName.length());
-        
+
         // 发送文件名
         if (sendDataAndWaitForAck(clientSocket, clientAddr, serverAddr, fileHeader, fileName.c_str(), fileName.length()) == true) {
             setConsoleColor(10);  // 设置为绿色
             cout << "文件名发送成功，开始传输文件内容..." << endl;
-            setConsoleColor(7); 
+            setConsoleColor(7);
             cout << "===============================================" << endl;
         }
         else {
@@ -830,7 +835,7 @@ void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, 
         // 读取文件内容到 vector 中
         file.read(fileContent.data(), fileSize); // fileContent.data() 返回指向 vector 数据的指针
         if (!file) {
-            cout << "文件读取失败!" <<endl;
+            cout << "文件读取失败!" << endl;
             return;
         }
         cout << "文件读取成功，正在进行文件传输..." << endl;
@@ -850,7 +855,7 @@ void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, 
         setConsoleColor(10);
         cout << "文件传输完毕!" << endl;
         setConsoleColor(7);
-       
+
 
         // 计算传输时间
         chrono::duration<double> transferDuration = endTime - startTime;
@@ -908,7 +913,6 @@ void udpClient(const char* clientIP, const char* serverIP, uint16_t serverPort, 
     WSACleanup();
     cout << "连接已关闭!" << endl;
 }
-
 int main() {
     // 配置客户端和服务器信息
     const char* clientIP = "192.168.188.1"; // 客户端IP地址
@@ -920,7 +924,7 @@ int main() {
     printWelcomeScreen();
     string s;
     getline(cin, s);
-    if (s== "q") 
+    if (s == "q")
     {
         return 0;
     }
@@ -929,7 +933,10 @@ int main() {
         int size;
         cout << "请输入发送端窗口大小" << endl;
         cin >> size;
-        udpClient(clientIP, serverIP, serverPort, clientPort,size);
+        // 忽略输入缓冲区中的换行符
+        cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+        udpClient(clientIP, serverIP, serverPort, clientPort, size);
+
     }
     return 0;
 }

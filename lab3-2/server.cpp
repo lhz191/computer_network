@@ -457,7 +457,7 @@ void udpServer(const char* clientIP, const char* serverIP, uint16_t serverPort, 
     int clientAddrLen = sizeof(clientAddr);
     uint32_t sequenceNumber;
     uint32_t acknowledgmentNumber;
-     //第一步：接收SYN
+    //第一步：接收SYN
     int bytesReceived = recvfrom(serverSocket, buffer, BUFFER_SIZE, 0, (sockaddr*)&clientAddr, &clientAddrLen);
     if (bytesReceived > 0) {
         UDPHeader* recvHeader = (UDPHeader*)buffer;
@@ -472,7 +472,7 @@ void udpServer(const char* clientIP, const char* serverIP, uint16_t serverPort, 
             //vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
             //sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
             //cout << "已发送SYN-ACK" << endl;
-            if (performSecondWayHandshake(serverSocket,clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
+            if (performSecondWayHandshake(serverSocket, clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
             {
                 setConsoleColor(10);
                 cout << "成功建立连接" << endl;
@@ -483,171 +483,171 @@ void udpServer(const char* clientIP, const char* serverIP, uint16_t serverPort, 
     ofstream outFile;
     int flag = 0;
     uint32_t wanted;
-    while(1){
-    // 等待客户端结束连接
-    char buffer_fin[BUFFER_SIZE] = {};
-    sockaddr_in clientAddr_fin = {};
-    int clientAddrLen_fin = sizeof(clientAddr);
-    //第一步：接收FIN
-    bytesReceived = recvfrom(serverSocket, buffer_fin, BUFFER_SIZE, 0, (sockaddr*)&clientAddr_fin, &clientAddrLen_fin);
-    if (bytesReceived > 0) {
-        UDPHeader* recvHeader = (UDPHeader*)buffer_fin;
-        PseudoHeader pseudorecvHeader = createPseudoHeader(clientAddr.sin_addr.s_addr, serverAddr.sin_addr.s_addr, bytesReceived);
-        if (recvHeader->flags == FIN_FLAG) {
-            cout << "接收到FIN，准备发送FIN ACK..." << endl;
-            cout << "[服务端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
-            acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
-            UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, FIN_ACK_FLAG, 0);
-            // 发送数据包
-            //PseudoHeader pseudosynHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
-            //vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
-            //sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-            //setConsoleColor(10);
-            //cout << "已发送FIN ACK，成功释放连接" << endl;
-            //setConsoleColor(7);
-            //return;
-            if (performSecondHandshake(serverSocket, clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
-            {
-                setConsoleColor(10);
-                cout << "成功释放连接" << endl;
-                setConsoleColor(7);
-            }
-            
-            // 关闭文件流，准备接收下一个用户的连接
-            cout << "关闭文件流，准备接收下一个用户的连接" << endl;
-            if (outFile.is_open()) {
-                outFile.close();
-            }
-            flag = 0;
-            // 等待客户端连接
-            char buffer[BUFFER_SIZE] = {};
-            sockaddr_in clientAddr = {};
-            int clientAddrLen = sizeof(clientAddr);
-            uint32_t sequenceNumber;
-            uint32_t acknowledgmentNumber;
-            //第一步：接收SYN
-            int bytesReceived = recvfrom(serverSocket, buffer, BUFFER_SIZE, 0, (sockaddr*)&clientAddr, &clientAddrLen);
-            if (bytesReceived > 0) {
-                UDPHeader* recvHeader = (UDPHeader*)buffer;
-                if (recvHeader->flags == SYN_FLAG) {
+    while (1) {
+        // 等待客户端结束连接
+        char buffer_fin[BUFFER_SIZE] = {};
+        sockaddr_in clientAddr_fin = {};
+        int clientAddrLen_fin = sizeof(clientAddr);
+        //第一步：接收FIN
+        bytesReceived = recvfrom(serverSocket, buffer_fin, BUFFER_SIZE, 0, (sockaddr*)&clientAddr_fin, &clientAddrLen_fin);
+        if (bytesReceived > 0) {
+            UDPHeader* recvHeader = (UDPHeader*)buffer_fin;
+            PseudoHeader pseudorecvHeader = createPseudoHeader(clientAddr.sin_addr.s_addr, serverAddr.sin_addr.s_addr, bytesReceived);
+            if (recvHeader->flags == FIN_FLAG) {
+                cout << "接收到FIN，准备发送FIN ACK..." << endl;
+                cout << "[服务端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
+                acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
+                UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, FIN_ACK_FLAG, 0);
+                // 发送数据包
+                //PseudoHeader pseudosynHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
+                //vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
+                //sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                //setConsoleColor(10);
+                //cout << "已发送FIN ACK，成功释放连接" << endl;
+                //setConsoleColor(7);
+                //return;
+                if (performSecondHandshake(serverSocket, clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
+                {
                     setConsoleColor(10);
-                    cout << "接收到SYN，准备发送SYN-ACK..." << endl;
+                    cout << "成功释放连接" << endl;
                     setConsoleColor(7);
-                    sequenceNumber = 0;
-                    acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
-                    UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, sequenceNumber, acknowledgmentNumber, SYN_ACK_FLAG, 0);
-                    // 发送数据包
-                    //PseudoHeader pseudosynHeader = createPseudoHeader(clientAddr.sin_addr.s_addr, serverAddr.sin_addr.s_addr, HEADER_SIZE);
-                    //vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
-                    //sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-                    //cout << "已发送SYN-ACK" << endl;
-                    if (performSecondWayHandshake(serverSocket, clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
-                    {
+                }
+
+                // 关闭文件流，准备接收下一个用户的连接
+                cout << "关闭文件流，准备接收下一个用户的连接" << endl;
+                if (outFile.is_open()) {
+                    outFile.close();
+                }
+                flag = 0;
+                // 等待客户端连接
+                char buffer[BUFFER_SIZE] = {};
+                sockaddr_in clientAddr = {};
+                int clientAddrLen = sizeof(clientAddr);
+                uint32_t sequenceNumber;
+                uint32_t acknowledgmentNumber;
+                //第一步：接收SYN
+                int bytesReceived = recvfrom(serverSocket, buffer, BUFFER_SIZE, 0, (sockaddr*)&clientAddr, &clientAddrLen);
+                if (bytesReceived > 0) {
+                    UDPHeader* recvHeader = (UDPHeader*)buffer;
+                    if (recvHeader->flags == SYN_FLAG) {
                         setConsoleColor(10);
-                        cout << "成功建立连接" << endl;
+                        cout << "接收到SYN，准备发送SYN-ACK..." << endl;
                         setConsoleColor(7);
+                        sequenceNumber = 0;
+                        acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
+                        UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, sequenceNumber, acknowledgmentNumber, SYN_ACK_FLAG, 0);
+                        // 发送数据包
+                        //PseudoHeader pseudosynHeader = createPseudoHeader(clientAddr.sin_addr.s_addr, serverAddr.sin_addr.s_addr, HEADER_SIZE);
+                        //vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
+                        //sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                        //cout << "已发送SYN-ACK" << endl;
+                        if (performSecondWayHandshake(serverSocket, clientAddr, serverAddr, synHeader, nullptr, 0, sequenceNumber, acknowledgmentNumber) == 1)
+                        {
+                            setConsoleColor(10);
+                            cout << "成功建立连接" << endl;
+                            setConsoleColor(7);
+                        }
                     }
                 }
+                continue;
             }
-            continue;
-        }
-        else if (recvHeader->flags == FILE_END)
-        {
-            setConsoleColor(10);
-            cout << "接收到FILE_END，准备发送ACK..." << endl;
-            cout << "[来自客户端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
-            setConsoleColor(7);
-            acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
-            UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
-            // 发送数据包
-            PseudoHeader pseudosynHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
-            vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
-            sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-            setConsoleColor(10);
-            cout << "[服务端]发送数据包的序列号：" << synHeader.sequenceNumber << "，ACK号：" << synHeader.acknowledgmentNumber << "，校验和：" << synHeader.checksum << endl;
-            cout << "已发送ACK，本次文件接收完毕" << endl;
-            setConsoleColor(7);
-            // 关闭文件流，准备接收下一个文件
-            if (outFile.is_open()) {
-                outFile.close();
-            }
-            flag = 0;
-            continue;
-        }
-        else
-        {
-            if (flag == 0)
+            else if (recvHeader->flags == FILE_END)
             {
-                // 第一次收到数据包，数据包内容是文件名
-                string fileName(buffer_fin + HEADER_SIZE, bytesReceived - HEADER_SIZE);  // 提取文件名
-                cout << "接收到文件名: " << fileName << endl;
-                cout << "收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
-                // 创建文件路径，并打开文件
-                string filePath = "D:/new/" + fileName;  // 拼接文件路径
-                outFile.open(filePath, ios::binary);  // 使用文件路径创建文件
-                if (!outFile) {
-                    cerr << "无法创建文件: " << filePath << endl;
-                    return;
+                setConsoleColor(10);
+                cout << "接收到FILE_END，准备发送ACK..." << endl;
+                cout << "[来自客户端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
+                setConsoleColor(7);
+                acknowledgmentNumber = (recvHeader->sequenceNumber) + 1;
+                UDPHeader synHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
+                // 发送数据包
+                PseudoHeader pseudosynHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
+                vector<char> synAckPacket = createPacket(synHeader, nullptr, 0, pseudosynHeader);
+                sendto(serverSocket, synAckPacket.data(), synAckPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                setConsoleColor(10);
+                cout << "[服务端]发送数据包的序列号：" << synHeader.sequenceNumber << "，ACK号：" << synHeader.acknowledgmentNumber << "，校验和：" << synHeader.checksum << endl;
+                cout << "已发送ACK，本次文件接收完毕" << endl;
+                setConsoleColor(7);
+                // 关闭文件流，准备接收下一个文件
+                if (outFile.is_open()) {
+                    outFile.close();
                 }
-                flag=1;
-                char* data = buffer_fin + HEADER_SIZE;
-                int dataLength = bytesReceived - HEADER_SIZE;
-
-                if (checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == true)
-                {
-                    acknowledgmentNumber = recvHeader->sequenceNumber + 1;
-                    UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
-                    PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
-                    vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
-                    sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-                    cout << "已发送ACK确认!" << endl;
-                    wanted = ackHeader.acknowledgmentNumber;
-                    cout << "发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
-                }
-                //wanted = 0;
+                flag = 0;
                 continue;
             }
             else
             {
-                cout << "==================进行数据接收=================" << endl;
-                cout << "[来自客户端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
-                char* data = buffer_fin + HEADER_SIZE;
-                int dataLength = bytesReceived - HEADER_SIZE;
-                if (recvHeader->sequenceNumber == wanted && checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == true)
+                if (flag == 0)
                 {
-                    // 保存到文件
-                    outFile.write(data, dataLength);
-                    cout << "已写入数据块: " << dataLength << " 字节" << endl;
+                    // 第一次收到数据包，数据包内容是文件名
+                    string fileName(buffer_fin + HEADER_SIZE, bytesReceived - HEADER_SIZE);  // 提取文件名
+                    cout << "接收到文件名: " << fileName << endl;
+                    cout << "收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
+                    // 创建文件路径，并打开文件
+                    string filePath = "D:/new/" + fileName;  // 拼接文件路径
+                    outFile.open(filePath, ios::binary);  // 使用文件路径创建文件
+                    if (!outFile) {
+                        cerr << "无法创建文件: " << filePath << endl;
+                        return;
+                    }
+                    flag = 1;
+                    char* data = buffer_fin + HEADER_SIZE;
+                    int dataLength = bytesReceived - HEADER_SIZE;
 
-                    acknowledgmentNumber = recvHeader->sequenceNumber + 1;
-                    UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
-                    PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
-                    vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
-                    sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-                    cout << "已发送ACK确认!" << endl;
-                    wanted = ackHeader.acknowledgmentNumber;
-                    cout << "[服务端]发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
-                    cout << "===============================================" << endl;
+                    if (checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == true)
+                    {
+                        acknowledgmentNumber = recvHeader->sequenceNumber + 1;
+                        UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
+                        PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
+                        vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
+                        sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                        cout << "已发送ACK确认!" << endl;
+                        wanted = ackHeader.acknowledgmentNumber;
+                        cout << "发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
+                    }
+                    //wanted = 0;
+                    continue;
                 }
-                else if(recvHeader->sequenceNumber != wanted || checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == false)
+                else
                 {
-                    acknowledgmentNumber = wanted;
-                    UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
-                    PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
-                    vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
-                    sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
-                    cout << "已重新发送ACK确认!" << endl;
-                    cout << "[服务端]发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
-                    cout << "===============================================" << endl;
+                    cout << "==================进行数据接收=================" << endl;
+                    cout << "[来自客户端]收到数据包的序列号：" << recvHeader->sequenceNumber << "，ACK号：" << recvHeader->acknowledgmentNumber << "，校验和：" << recvHeader->checksum << endl;
+                    char* data = buffer_fin + HEADER_SIZE;
+                    int dataLength = bytesReceived - HEADER_SIZE;
+                    if (recvHeader->sequenceNumber == wanted && checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == true)
+                    {
+                        // 保存到文件
+                        outFile.write(data, dataLength);
+                        cout << "已写入数据块: " << dataLength << " 字节" << endl;
+
+                        acknowledgmentNumber = recvHeader->sequenceNumber + 1;
+                        UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
+                        PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
+                        vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
+                        sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                        cout << "已发送ACK确认!" << endl;
+                        wanted = ackHeader.acknowledgmentNumber;
+                        cout << "[服务端]发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
+                        cout << "===============================================" << endl;
+                    }
+                    else if (recvHeader->sequenceNumber != wanted || checkheader(pseudorecvHeader, *recvHeader, data, bytesReceived - HEADER_SIZE) == false)
+                    {
+                        acknowledgmentNumber = wanted;
+                        UDPHeader ackHeader = createUDPHeader(serverPort, recvHeader->sourcePort, ++sequenceNumber, acknowledgmentNumber, ACK_FLAG, 0);
+                        PseudoHeader ackPseudoHeader = createPseudoHeader(serverAddr.sin_addr.s_addr, clientAddr.sin_addr.s_addr, HEADER_SIZE);
+                        vector<char> ackPacket = createPacket(ackHeader, nullptr, 0, ackPseudoHeader);
+                        sendto(serverSocket, ackPacket.data(), ackPacket.size(), 0, (sockaddr*)&clientAddr, clientAddrLen);
+                        cout << "已重新发送ACK确认!" << endl;
+                        cout << "[服务端]发送数据包的序列号：" << ackHeader.sequenceNumber << "，ACK号：" << ackHeader.acknowledgmentNumber << "，校验和：" << ackHeader.checksum << endl;
+                        cout << "===============================================" << endl;
+                    }
                 }
             }
         }
-    }
-    else
-    {
-        cout << "无法建立连接" << endl;
-        return;
-    }
+        else
+        {
+            cout << "无法建立连接" << endl;
+            return;
+        }
     }
 
 
